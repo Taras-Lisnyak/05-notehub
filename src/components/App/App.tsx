@@ -5,7 +5,7 @@ import Pagination from "../Pagination/Pagination";
 import NoteList from "../NoteList/NoteList";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
-import { createNote, fetchNotes, deleteNote } from "../../services/noteService";
+import { fetchNotes, deleteNote } from "../../services/noteService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebouncedCallback } from "use-debounce";
 import Loader from "../Loader/Loader";
@@ -20,27 +20,14 @@ const App = () => {
 
   const queryClient = useQueryClient();
 
-  // ✅ Витяг даних через useQuery
+  // ✅ Витяг даних
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", page, search],
     queryFn: () => fetchNotes(page, perPage, search),
     placeholderData: (prev) => prev,
   });
 
-  // ✅ Мутація створення нотатки
-  const mutationCreate = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes", page, search] });
-      setIsModalOpen(false);
-    },
-  });
-
-  const handleCreateNote = (values: { title: string; content: string; tag: string }) => {
-    mutationCreate.mutate(values);
-  };
-
-  // ✅ Мутація видалення нотатки
+  // ✅ Мутація видалення
   const mutationDelete = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
@@ -83,7 +70,8 @@ const App = () => {
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onCancel={() => setIsModalOpen(false)} onSubmit={handleCreateNote} />
+          {/* ✅ Тепер передаємо тільки onCancel */}
+          <NoteForm onCancel={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </div>
