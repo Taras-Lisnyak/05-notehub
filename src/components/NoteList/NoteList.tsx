@@ -1,50 +1,30 @@
 import css from "./NoteList.module.css";
-import type { Note, FetchNotesResponse } from "../../types/note";
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { fetchNotes, deleteNote } from "../../services/noteService";
-import Loader from "../Loader/Loader";
-import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import type { Note } from "../../types/note";
 
 interface NoteListProps {
-  page: number;
-  perPage: number;
-  search?: string;
+  notes: Note[];
+  onDelete?: (id: string) => void; 
 }
 
-const NoteList = ({ page, perPage, search }: NoteListProps) => {
-  const queryClient = useQueryClient();
-
-  const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes", page, search],
-    queryFn: () => fetchNotes(page, perPage, search),
-    placeholderData: keepPreviousData, // ✅ заміна keepPreviousData: true
-  });
-
-  const mutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] }); // зачепить усі варіанти
-    },
-  });
-
-  if (isLoading) return <Loader />;
-  if (isError) return <ErrorMessage message="Error loading notes" />;
-  if (!data || data.notes.length === 0) return null;
+const NoteList = ({ notes, onDelete }: NoteListProps) => {
+  if (!notes || notes.length === 0) return null;
 
   return (
     <ul className={css.list}>
-      {data.notes.map((note: Note) => (
+      {notes.map((note) => (
         <li key={note.id} className={css.listItem}>
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
-            <button
-              className={css.button}
-              onClick={() => mutation.mutate(note.id)}
-            >
-              Delete
-            </button>
+            {onDelete && (
+              <button
+                className={css.button}
+                onClick={() => onDelete(note.id)}
+              >
+                Delete
+              </button>
+            )}
           </div>
         </li>
       ))}
@@ -53,3 +33,4 @@ const NoteList = ({ page, perPage, search }: NoteListProps) => {
 };
 
 export default NoteList;
+

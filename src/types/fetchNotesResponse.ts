@@ -4,4 +4,3 @@ export interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
-

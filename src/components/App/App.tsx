@@ -5,7 +5,7 @@ import Pagination from "../Pagination/Pagination";
 import NoteList from "../NoteList/NoteList";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
-import { createNote, fetchNotes } from "../../services/noteService";
+import { createNote, fetchNotes, deleteNote } from "../../services/noteService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebouncedCallback } from "use-debounce";
 import Loader from "../Loader/Loader";
@@ -28,7 +28,7 @@ const App = () => {
   });
 
   // ✅ Мутація створення нотатки
-  const mutation = useMutation({
+  const mutationCreate = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes", page, search] });
@@ -37,7 +37,19 @@ const App = () => {
   });
 
   const handleCreateNote = (values: { title: string; content: string; tag: string }) => {
-    mutation.mutate(values);
+    mutationCreate.mutate(values);
+  };
+
+  // ✅ Мутація видалення нотатки
+  const mutationDelete = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes", page, search] });
+    },
+  });
+
+  const handleDeleteNote = (id: string) => {
+    mutationDelete.mutate(id);
   };
 
   // Debounced пошук
@@ -65,7 +77,9 @@ const App = () => {
       {isLoading && <Loader />}
       {isError && <ErrorMessage message="Error loading notes" />}
 
-      {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
+      {data && data.notes.length > 0 && (
+        <NoteList notes={data.notes} onDelete={handleDeleteNote} />
+      )}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
