@@ -1,10 +1,10 @@
 import css from "./NoteList.module.css";
 import type { Note } from "../../types/note";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { fetchNotes, deleteNote } from "../../services/noteService";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
-
+import type { FetchNotesResponse } from "../../types";
 
 interface NoteListProps {
   page: number;
@@ -15,26 +15,22 @@ interface NoteListProps {
 const NoteList = ({ page, perPage, search }: NoteListProps) => {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", page, search],
     queryFn: () => fetchNotes(page, perPage, search),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData, // ✅ заміна keepPreviousData: true
   });
 
-const mutation = useMutation({
-  mutationFn: deleteNote,
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["notes"] }); // тепер зачепить усі варіанти
-  },
-});
-
-
+  const mutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] }); // зачепить усі варіанти
+    },
+  });
 
   if (isLoading) return <Loader />;
   if (isError) return <ErrorMessage message="Error loading notes" />;
   if (!data || data.notes.length === 0) return null;
-
-
 
   return (
     <ul className={css.list}>
@@ -58,4 +54,3 @@ const mutation = useMutation({
 };
 
 export default NoteList;
-
