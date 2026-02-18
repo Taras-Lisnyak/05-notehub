@@ -2,13 +2,8 @@ export interface Note {
   id: string;
   title: string;
   content: string;
-  tag: NoteTag;
+  tag: "work" | "personal" | "study"; 
+  createdAt: string;  
+  updatedAt: string;  
 }
 
-export type NoteTag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
-
-// response from the API when fetching notes
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}

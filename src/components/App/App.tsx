@@ -5,9 +5,12 @@ import Pagination from "../Pagination/Pagination";
 import NoteList from "../NoteList/NoteList";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
-import { createNote } from "../../services/noteService";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote, fetchNotes } from "../../services/noteService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebouncedCallback } from "use-debounce";
+import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import type { FetchNotesResponse } from "../../types/fetchNotesResponse";
 
 const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,10 +20,18 @@ const App = () => {
 
   const queryClient = useQueryClient();
 
+  // ✅ Витяг даних через useQuery
+  const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
+    queryKey: ["notes", page, search],
+    queryFn: () => fetchNotes(page, perPage, search),
+    placeholderData: (prev) => prev,
+  });
+
+  // ✅ Мутація створення нотатки
   const mutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      queryClient.invalidateQueries({ queryKey: ["notes", page, search] });
       setIsModalOpen(false);
     },
   });
@@ -32,20 +43,29 @@ const App = () => {
   // Debounced пошук
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
-    setPage(1); // при новому пошуку повертаємось на першу сторінку
+    setPage(1);
   }, 500);
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox onSearch={debouncedSearch} />
-        <Pagination pageCount={5} onPageChange={setPage} />
+        {data && data.totalPages > 1 && (
+          <Pagination
+            pageCount={data.totalPages}
+            currentPage={page}
+            onPageChange={setPage}
+          />
+        )}
         <button className={css.button} onClick={() => setIsModalOpen(true)}>
           Create note +
         </button>
       </header>
 
-      <NoteList page={page} perPage={perPage} search={search} />
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage message="Error loading notes" />}
+
+      {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
@@ -56,8 +76,5 @@ const App = () => {
   );
 };
 
-
-
-
-
 export default App;
+
