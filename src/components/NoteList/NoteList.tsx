@@ -9,16 +9,12 @@ interface NoteListProps {
 
 const NoteList = ({ notes }: NoteListProps) => {
   const queryClient = useQueryClient();
-
   const mutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
-      // інвалідуємо кеш, щоб список оновився
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
-
-  if (!notes || notes.length === 0) return null;
 
   return (
     <ul className={css.list}>
@@ -43,4 +39,3 @@ const NoteList = ({ notes }: NoteListProps) => {
 };
 
 export default NoteList;
-

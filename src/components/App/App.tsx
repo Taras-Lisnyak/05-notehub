@@ -27,17 +27,6 @@ const App = () => {
     placeholderData: (prev) => prev,
   });
 
-  // ✅ Мутація видалення
-  const mutationDelete = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes", page, search] });
-    },
-  });
-
-  const handleDeleteNote = (id: string) => {
-    mutationDelete.mutate(id);
-  };
 
   // Debounced пошук
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -64,9 +53,10 @@ const App = () => {
       {isLoading && <Loader />}
       {isError && <ErrorMessage message="Error loading notes" />}
 
-      {data && data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={handleDeleteNote} />
-      )}
+  {data && data.notes.length > 0 && (
+  <NoteList notes={data.notes} />
+)}
+
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
