@@ -6,3 +6,9 @@ export interface Note {
 }
 
 export type NoteTag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+
+// response from the API when fetching notes
+export interface FetchNotesResponse {
+  notes: Note[];
+  totalPages: number;
+}

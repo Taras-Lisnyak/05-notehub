@@ -1,10 +1,9 @@
 import css from "./NoteList.module.css";
-import type { Note } from "../../types/note";
+import type { Note, FetchNotesResponse } from "../../types/note";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { fetchNotes, deleteNote } from "../../services/noteService";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import type { FetchNotesResponse } from "../../types";
 
 interface NoteListProps {
   page: number;
